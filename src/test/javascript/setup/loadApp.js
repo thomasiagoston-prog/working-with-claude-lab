@@ -19,6 +19,7 @@ const REGISTERED_IDS = [
   'app-header',
   'app-title',
   'app-subtitle',
+  'theme-toggle',
   'range-form',
   'range-from',
   'range-to',
@@ -157,12 +158,20 @@ function createFakeApi(overrides) {
 /**
  * Load the page and start the app against a fake API. `overrides` replaces any of the
  * fixtures by name (health, kpis, onTime, late, ticketsByCategory, vendors, failing).
+ * `storedTheme` puts a theme in localStorage before the app starts; otherwise storage is empty.
  * Returns { app, api, document, module } once the initial load has finished.
  */
 async function loadApp(overrides) {
   const html = readIndexHtml();
   const bodyMatch = html.match(/<body>([\s\S]*)<\/body>/);
   document.body.innerHTML = bodyMatch[1].replace(/<script[^>]*><\/script>/g, '');
+
+  // jsdom keeps <html> attributes and localStorage between loads; start each one clean.
+  document.documentElement.removeAttribute('data-theme');
+  window.localStorage.clear();
+  if (overrides && overrides.storedTheme) {
+    window.localStorage.setItem('ops-theme', overrides.storedTheme);
+  }
 
   const api = createFakeApi(overrides);
   global.fetch = api.fetchImpl;

@@ -13,6 +13,8 @@
   var DEFAULT_PRESET_DAYS = 30;
   var LATE_LIMIT = 20;
   var SVG_NS = 'http://www.w3.org/2000/svg';
+  var THEME_KEY = 'ops-theme';
+  var DEFAULT_THEME = 'dark';
 
   // ---------- API client ----------
 
@@ -108,6 +110,7 @@
     var api = createApi(fetchImpl);
 
     var els = {
+      themeToggle: document.getElementById('theme-toggle'),
       status: document.getElementById('status-line'),
       form: document.getElementById('range-form'),
       from: document.getElementById('range-from'),
@@ -126,6 +129,7 @@
     };
 
     var state = {
+      theme: DEFAULT_THEME,
       today: null,
       from: null,
       to: null,
@@ -169,6 +173,47 @@
 
     function setKpi(el, value) {
       el.querySelector('.kpi-value').textContent = value;
+    }
+
+    // ---------- Theme ----------
+
+    // The colours live in style.css; JavaScript only sets data-theme on <html>.
+    // With nothing stored the theme is dark, whatever the OS prefers (TODO-231, AC-4).
+
+    function storage() {
+      try {
+        return document.defaultView && document.defaultView.localStorage;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function readStoredTheme() {
+      try {
+        var stored = storage() && storage().getItem(THEME_KEY);
+        return stored === 'light' || stored === 'dark' ? stored : DEFAULT_THEME;
+      } catch (e) {
+        return DEFAULT_THEME;
+      }
+    }
+
+    function applyTheme(theme) {
+      state.theme = theme;
+      document.documentElement.setAttribute('data-theme', theme);
+      els.themeToggle.textContent = theme === 'dark' ? 'Light theme' : 'Dark theme';
+      els.themeToggle.setAttribute('aria-pressed', String(theme === 'dark'));
+    }
+
+    function toggleTheme() {
+      var next = state.theme === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+      try {
+        if (storage()) {
+          storage().setItem(THEME_KEY, next);
+        }
+      } catch (e) {
+        // Storage unavailable (private mode, quota): the toggle still works for this visit.
+      }
     }
 
     // ---------- Rendering ----------
@@ -333,6 +378,9 @@
       return load(range.from, range.to);
     }
 
+    applyTheme(readStoredTheme());
+    els.themeToggle.addEventListener('click', toggleTheme);
+
     els.form.addEventListener('submit', function (event) {
       event.preventDefault();
       state.preset = null;
@@ -367,6 +415,7 @@
 
   var exported = {
     initApp: initApp,
+    THEME_KEY: THEME_KEY,
     createApi: createApi,
     formatRate: formatRate,
     formatMoney: formatMoney,
