@@ -30,12 +30,14 @@ describe('theme toggle (TODO-231)', () => {
     click(document, 'theme-toggle');
     expect(theme(document)).toBe('light');
     expect(toggle.textContent).toBe('Dark theme');
-    expect(toggle.getAttribute('aria-pressed')).toBe('false');
+    // The label names the action, so the button is not a pressed/unpressed toggle:
+    // aria-pressed would contradict the label for screen readers.
+    expect(toggle.hasAttribute('aria-pressed')).toBe(false);
 
     click(document, 'theme-toggle');
     expect(theme(document)).toBe('dark');
     expect(toggle.textContent).toBe('Light theme');
-    expect(toggle.getAttribute('aria-pressed')).toBe('true');
+    expect(toggle.hasAttribute('aria-pressed')).toBe(false);
   });
 
   test('AC-3: the choice is saved to localStorage and restored on the next load', async () => {

@@ -201,7 +201,6 @@
       state.theme = theme;
       document.documentElement.setAttribute('data-theme', theme);
       els.themeToggle.textContent = theme === 'dark' ? 'Light theme' : 'Dark theme';
-      els.themeToggle.setAttribute('aria-pressed', String(theme === 'dark'));
     }
 
     function toggleTheme() {
